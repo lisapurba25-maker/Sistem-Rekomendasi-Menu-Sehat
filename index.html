@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistem Rekomendasi Menu Sehat - Simulasi & Flowchart</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --card: #ffffff;
+      --accent: #2b8aef;
+      --muted: #6b7280;
+    }
+
+    body {
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: #111;
+    }
+
+    header {
+      background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+      color: white;
+      padding: 28px 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+    }
+
+    h1 { font-size: 20px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 16px; }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e6e9ee;
+      border-radius: 8px;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .result-item {
+      border-radius: 8px;
+      padding: 10px;
+      margin: 8px 0;
+      background: linear-gradient(180deg, #f8fafc, #fff);
+    }
+
+    .small {
+      font-size: 13px;
+    }
+
+    .history-list {
+      max-height: 240px;
+      overflow: auto;
+      padding-right: 6px;
+    }
+
+    footer {
+      margin: 40px 0 80px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .flow {
+      margin-top: 14px;
+    }
+
+    .explain {
+      font-size: 13px;
+      background: #f8fafc;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    /* Full-width on mobile */
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      aside {
+        order: 2;
+      }
+      section {
+        order: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Sistem Rekomendasi Menu Sehat — Simulasi & Flowchart</h1>
+      <p class="muted">Halaman ini berisi implementasi HTML/JS (KNN client-side) dan flowchart sistem yang bisa diunduh (SVG).</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      <section class="card">
+        <h2>Input Pengguna</h2>
+        <form id="userForm">
+          <label for="name">Nama</label>
+          <input id="name" type="text" placeholder="Nama (opsional)">
+
+          <div class="row">
+            <div style="flex: 1">
+              <label for="age">Usia</label>
+              <input id="age" type="number" min="5" max="120" value="25">
+            </div>
+            <div style="flex: 1">
+              <label for="gender">Jenis Kelamin</label>
+              <select id="gender">
+                <option value="other">Lainnya</option>
+                <option value="male">Laki-laki</option>
+                <option value="female">Perempuan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex: 1">
+              <label for="weight">Berat (kg)</label>
+              <input id="weight" type="number" value="70">
+            </div>
+            <div style="flex: 1">
+              <label for="height">Tinggi (cm)</label>
+              <input id="height" type="number" value="170">
+            </div>
+          </div>
+
+          <label for="activity">Tingkat Aktivitas</label>
+          <select id="activity">
+            <option value="1">Ringan (sedentari)</option>
+            <option value="2" selected>Sedang</option>
+            <option value="3">Aktif / Olahraga</option>
+          </select>
+
+          <label for="pref">Preferensi</label>
+          <select id="pref">
+            <option value="any">Tidak spesifik</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="lowcal">Rendah Kalori</option>
+            <option value="highprot">Tinggi Protein</option>
+          </select>
+
+          <label for="allergy">Alergi (pisahkan koma)</label>
+          <input id="allergy" type="text" placeholder="contoh: kacang, susu">
+
+          <button class="btn" type="submit">Dapatkan Rekomendasi</button>
+        </form>
+
+        <div class="flow card">
+          <strong>Ilustrasi cara kerja (KNN sederhana)</strong>
+          <div class="explain small">
+            1) Data user diubah jadi fitur numerik (BMI, aktivitas, preferensi).<br>
+            2) Hitung jarak (Euclidean) antara input dan contoh menu di dataset.<br>
+            3) Ambil K tetangga terdekat, pilih menu yang paling sering muncul atau nilai nutrisi terbaik.
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Flowchart Sistem</h3>
+          <p class="small muted">Diagram lengkap alur aplikasi. Klik "Unduh Flowchart (SVG)" untuk menyimpan.</p>
+          <div id="flowchartWrap"></div>
+          <button id="downloadFlow" class="btn" style="margin-top: 10px">Unduh Flowchart (SVG)</button>
+        </div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <h3>Hasil Rekomendasi</h3>
+          <div id="results"></div>
+          <div id="noResults" class="muted small">Belum ada rekomendasi. Isi form dan klik <strong>Dapatkan Rekomendasi</strong>.</div>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h3>Riwayat Rekomendasi</h3>
+          <div class="history-list" id="history"></div>
+          <button id="clearHistory" class="btn" style="background: #ef4444; margin-top: 10px">Hapus Riwayat</button>
+        </div>
+
+        <div class="card" style="margin-top: 14px">
+          <h3>Cara Kerja Model</h3>
+          <p class="small muted">Kita menggunakan dataset mini (menu contoh) dan KNN client-side. KNN sederhana cocok untuk demonstrasi dan mudah dijelaskan pada UI.</p>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      <small class="muted">Simulasi dibuat untuk tujuan pembelajaran — data dan model disederhanakan.</small>
+    </footer>
+  </main>
+
+  <script>
+    // ======================
+    // Dataset & Preprocessing
+    // ======================
+    const MENU_DATA = [
+      { id: 1, name: 'Salad Ayam & Quinoa', features: [420, 30, 0, 1], tags: ['highprot'] },
+      { id: 2, name: 'Oatmeal dengan Buah', features: [260, 8, 1, 1], tags: ['lowcal', 'vegetarian'] },
+      { id: 3, name: 'Nasi Merah + Tumis Tempe', features: [520, 22, 1, 2], tags: ['vegetarian'] },
+      { id: 4, name: 'Smoothie Protein', features: [300, 25, 1, 2], tags: ['highprot'] },
+      { id: 5, name: 'Ikan Panggang & Sayur', features: [480, 35, 0, 3], tags: ['highprot'] },
+      { id: 6, name: 'Sup Sayur Rendah Kalori', features: [180, 5, 1, 1], tags: ['lowcal', 'vegetarian'] },
+      { id: 7, name: 'Steak Dada Ayam & Ubi', features: [540, 40, 0, 3], tags: ['highprot'] },
+      { id: 8, name: 'Gado-Gado (porsi seimbang)', features: [450, 18, 1, 2], tags: ['vegetarian'] }
+    ];
+
+    // Normalisasi dataset
+    function normalizeDataset(data) {
+      const numFeatures = data[0].features.length;
+      const minVals = Array(numFeatures).fill(Infinity);
+      const maxVals = Array(numFeatures).fill(-Infinity);
+
+      data.forEach(item => {
+        item.features.forEach((val, i) => {
+          if (val < minVals[i]) minVals[i] = val;
+          if (val > maxVals[i]) maxVals[i] = val;
+        });
+      });
+
+      data.forEach(item => {
+        item.norm = item.features.map((val, i) =>
+          maxVals[i] === minVals[i] ? 0.5 : (val - minVals[i]) / (maxVals[i] - minVals[i])
+        );
+      });
+    }
+    normalizeDataset(MENU_DATA);
+
+    // ======================
+    // Helper Functions
+    // ======================
+    function computeBMI(weightKg, heightCm) {
+      const heightM = heightCm / 100;
+      return weightKg / (heightM * heightM);
+    }
+
+    function userToFeatures(userData) {
+      const { weight, height, activity, pref } = userData;
+      const bmi = computeBMI(weight, height);
+      let desiredCal = 2000 + (activity - 2) * 200 + (bmi < 18.5 ? -100 : bmi > 25 ? 150 : 0);
+      desiredCal = Math.round(desiredCal / 4); // Skala ke dataset
+      const desiredProt = activity * 12 + (bmi > 25 ? 6 : 0);
+      const isVegetarian = ['vegetarian', 'lowcal'].includes(pref) ? 1 : 0;
+      return [desiredCal, desiredProt, isVegetarian, activity];
+    }
+
+    function normalizeUserVector(vec) {
+      const numFeatures = vec.length;
+      const minVals = Array(numFeatures).fill(Infinity);
+      const maxVals = Array(numFeatures).fill(-Infinity);
+
+      MENU_DATA.forEach(item => {
+        item.features.forEach((val, i) => {
+          if (val < minVals[i]) minVals[i] = val;
+          if (val > maxVals[i]) maxVals[i] = val;
+        });
+      });
+
+      return vec.map((val, i) =>
+        maxVals[i] === minVals[i] ? 0.5 : (val - minVals[i]) / (maxVals[i] - minVals[i])
+      );
+    }
+
+    function euclideanDistance(a, b) {
+      return Math.sqrt(a.reduce((sum, val, i) => sum + Math.pow(val - b[i], 2), 0));
+    }
+
+    function knnRecommend(userNorm, k = 3) {
+      const distances = MENU_DATA.map(item => ({
+        ...item,
+        dist: euclideanDistance(userNorm, item.norm)
+      })).sort((a, b) => a.dist - b.dist);
+
+      return {
+        neighbors: distances.slice(0, k),
+        best: distances[0]
+      };
+    }
+
+    function matchesAllergy(menu, allergies) {
+      if (!allergies.length) return true;
+      const menuLower = menu.name.toLowerCase();
+      return allergies.every(allergy => !menuLower.includes(allergy.toLowerCase()));
+    }
+
+    function matchesPreference(menu, pref) {
+      if (pref === 'any') return true;
+      if (pref === 'vegetarian') return menu.tags.includes('vegetarian');
+      if (pref === 'lowcal') return menu.features[0] <= 400 || menu.tags.includes('lowcal');
+      if (pref === 'highprot') return menu.features[1] >= 25 || menu.tags.includes('highprot');
+      return true;
+    }
+
+    // ======================
+    // DOM References
+    // ======================
+    const form = document.getElementById('userForm');
+    const resultsEl = document.getElementById('results');
+    const noResultsEl = document.getElementById('noResults');
+    const historyEl = document.getElementById('history');
+    const clearHistoryBtn = document.getElementById('clearHistory');
+    const downloadFlowBtn = document.getElementById('downloadFlow');
+    const flowchartWrap = document.getElementById('flowchartWrap');
+
+    // ======================
+    // History Management
+    // ======================
+    function renderHistory() {
+      const history = JSON.parse(localStorage.getItem('menu_history') || '[]');
+      historyEl.innerHTML = '';
+
+      if (history.length === 0) {
+        historyEl.innerHTML = '<div class="muted small">Belum ada riwayat.</div>';
+        return;
+      }
+
+      history.slice().reverse().forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'result-item small';
+        div.innerHTML = `
+          <strong>${entry.rekomendasi.name}</strong>
+          <div class="muted">${entry.user.name || '(anonim)'} — ${new Date(entry.time).toLocaleString()}</div>
+          <div class="muted small">Input: usia ${entry.user.age}, BMI ${entry.user.bmi.toFixed(1)}, aktivitas ${entry.user.activity}, pref ${entry.user.pref}</div>
+        `;
+        historyEl.appendChild(div);
+      });
+    }
+
+    function saveToHistory(userInput, recommendation) {
+      const history = JSON.parse(localStorage.getItem('menu_history') || '[]');
+      history.push({
+        time: Date.now(),
+        user: {
+          name: userInput.name,
+          age: userInput.age,
+          activity: userInput.activity,
+          pref: userInput.pref,
+          bmi: userInput.bmi
+        },
+        rekomendasi: {
+          id: recommendation.id,
+          name: recommendation.name
+        }
+      });
+      localStorage.setItem('menu_history', JSON.stringify(history));
+    }
+
+    // ======================
+    // Event Listeners
+    // ======================
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const formData = {
+        name: document.getElementById('name').value.trim(),
+        age: Number(document.getElementById('age').value),
+        gender: document.getElementById('gender').value,
+        weight: Number(document.getElementById('weight').value),
+        height: Number(document.getElementById('height').value),
+        activity: Number(document.getElementById('activity').value),
+        pref: document.getElementById('pref').value,
+        allergy: document.getElementById('allergy').value
+          .split(',')
+          .map(s => s.trim())
+          .filter(s => s)
+      };
+
+      formData.bmi = computeBMI(formData.weight, formData.height);
+      const userFeatures = userToFeatures(formData);
+      const userNorm = normalizeUserVector(userFeatures);
+      const { neighbors, best } = knnRecommend(userNorm, 3);
+
+      let chosen = null;
+      for (const candidate of neighbors) {
+        if (matchesAllergy(candidate, formData.allergy) && matchesPreference(candidate, formData.pref)) {
+          chosen = candidate;
+          break;
+        }
+      }
+      if (!chosen) chosen = best;
+
+      // Tampilkan hasil
+      noResultsEl.style.display = 'none';
+      resultsEl.innerHTML = `
+        <div class="result-item">
+          <strong>${chosen.name}</strong>
+          <div class="muted small">Kalori: ${chosen.features[0]} kcal, Protein: ${chosen.features[1]} g</div>
+          <div class="small" style="margin-top:8px">
+            Alasan rekomendasi: <span class="muted">Dekat dengan preferensi nutrisi Anda (KNN). Cocok untuk tingkat aktivitas ${chosen.features[3]}.</span>
+          </div>
+        </div>
+        <div class="small muted" style="margin-top:6px">
+          Tetangga terdekat (K=3): ${neighbors.map(n => `${n.name} (${n.dist.toFixed(2)})`).join(', ')}
+        </div>
+      `;
+
+      saveToHistory(formData, chosen);
+      renderHistory();
+    });
+
+    clearHistoryBtn.addEventListener('click', () => {
+      if (confirm('Hapus semua riwayat rekomendasi?')) {
+        localStorage.removeItem('menu_history');
+        renderHistory();
+        resultsEl.innerHTML = '';
+        noResultsEl.style.display = 'block';
+      }
+    });
+
+    // ======================
+    // Flowchart (SVG)
+    // ======================
+    const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="420" viewBox="0 0 820 420">
+  <style>
+    .box{fill:#fff;stroke:#94a3b8;stroke-width:1.5;rx:10;}
+    .boxAccent{fill:#eef2ff;stroke:#7c9cff;stroke-width:1.5;}
+    .text{font-family:Arial,Helvetica,sans-serif;font-size:13px;fill:#0f1724}
+    .small{font-size:12px;fill:#475569}
+    .arrow{stroke:#334155;stroke-width:1.6;fill:none;marker-end:url(#a)}
+  </style>
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#334155" />
+    </marker>
+  </defs>
+  <rect x="20" y="30" width="200" height="60" rx="10" class="boxAccent"/>
+  <text x="36" y="52" class="text">Frontend (Browser)</text>
+  <text x="36" y="68" class="small">Form input, UI, tampil hasil</text>
+  <rect x="310" y="20" width="220" height="90" rx="10" class="box"/>
+  <text x="330" y="48" class="text">Backend (API)</text>
+  <text x="330" y="68" class="small">Validasi, preprocessing, panggil model</text>
+  <rect x="560" y="30" width="220" height="60" rx="10" class="boxAccent"/>
+  <text x="578" y="52" class="text">Model ML (KNN / NB)</text>
+  <text x="578" y="68" class="small">Prediksi & ranking menu</text>
+  <rect x="310" y="140" width="220" height="70" rx="10" class="box"/>
+  <text x="330" y="160" class="text">Database</text>
+  <text x="330" y="178" class="small">Dataset menu, riwayat user</text>
+  <path d="M220 60 L310 60" class="arrow"/>
+  <path d="M530 60 L560 60" class="arrow"/>
+  <path d="M420 110 L420 140" class="arrow"/>
+  <path d="M680 90 L680 140 L530 140" class="arrow"/>
+  <text x="235" y="46" class="small">HTTP POST /predict (JSON)</text>
+  <text x="510" y="46" class="small">Panggil model</text>
+  <text x="340" y="115" class="small">Simpan riwayat</text>
+  <circle cx="40" cy="340" r="22" fill="#fff" stroke="#94a3b8"/>
+  <text x="29" y="344" class="small">User</text>
+  <path d="M62 340 L120 120" stroke="#94a3b8" stroke-width="1.2" fill="none" marker-end="url(#a)"/>
+  <text x="20" y="400" class="small">Catatan: Alur dapat dikembangkan (auth, models versioning, async inference, caching).</text>
+</svg>`;
+
+    flowchartWrap.innerHTML = svgContent;
+
+    downloadFlowBtn.addEventListener('click', () => {
+      const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'flowchart_sistem_rekomendasi.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // Render riwayat saat halaman dimuat
+    renderHistory();
+  </script>
+</body>
+</html>
